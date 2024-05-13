@@ -339,6 +339,11 @@ function MovieDetails({ selectedId, onCloseMovie, watched, onAddWatched }) {
     getMoviesDetails(selectedId);
   }, [selectedId]);
 
+
+  useEffect(() => {
+    document.title = `Movie | ${title}`;
+  }, [title]);
+
   async function getMoviesDetails(id) {
     try {
 
