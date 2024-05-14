@@ -210,16 +210,32 @@ export default function App() {
   }
 
   useEffect(function () {
-    fetchMovies(query);
+    /* javascript method to cancel request to avoid race condition. */
+    const controller = new AbortController();
+
+
+    if (query.length < 3) {
+      setMovies([]);
+      setError("Search Movie in Search Bar.");
+      return;
+    }
+
+    onCloseMovie();
+    fetchMovies(query, controller);
+
+    /* Clean Up Function - Called when re-render component. */
+    return function () {
+      controller.abort();
+    }
   }, [query]);
 
-  async function fetchMovies(query) {
+  async function fetchMovies(query, controller) {
     try {
 
       setIsLoading(true);
       setError("");
 
-      const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
+      const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`, { signal: controller.signal });
 
       if (!res.ok) {
         throw new Error(`Fetching movies failed.`);
@@ -233,13 +249,20 @@ export default function App() {
 
       console.log(response);
       setMovies(response.Search);
+      setError("");
 
     } catch (error) {
-      setError(error.message);
+
+      if (error.name !== "AbortError") {
+        console.log(error.message);
+        setError(error.message);
+      }
+
     } finally {
       setIsLoading(false);
     }
   }
+
 
   return (
     <>
@@ -336,12 +359,43 @@ function MovieDetails({ selectedId, onCloseMovie, watched, onAddWatched }) {
 
 
   useEffect(() => {
+
+    function escapeCallback(e) {
+
+      //Keyboard Esc Button
+      if (e.code === 'Escape') {
+        onCloseMovie()
+      }
+
+    }
+    //Adding Listener.
+    document.addEventListener("keydown", escapeCallback);
+
+    //Clean Up Effect. 
+    //Note: Called After UnMounted
+    return function () {
+
+      //Remove Listener.
+      document.removeEventListener("keydown", escapeCallback);
+    }
+
+  }, [onCloseMovie]);
+
+  useEffect(() => {
     getMoviesDetails(selectedId);
   }, [selectedId]);
 
 
   useEffect(() => {
+    if (!title) return;
     document.title = `Movie | ${title}`;
+
+    /* Clean Up Function - Called when UnMount */
+    return function () {
+      document.title = "usePorcorn";
+      console.log(`Clean up effect for movie ${title}`);
+    }
+
   }, [title]);
 
   async function getMoviesDetails(id) {
