@@ -235,7 +235,7 @@ export default function App() {
       setIsLoading(true);
       setError("");
 
-      const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`, { signal: controller.signal });
+      const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}`, { signal: controller.signal });
 
       if (!res.ok) {
         throw new Error(`Fetching movies failed.`);
@@ -404,7 +404,7 @@ function MovieDetails({ selectedId, onCloseMovie, watched, onAddWatched }) {
       setIsLoading(true);
       setError("");
 
-      const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&i=${id}`);
+      const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&i=${id}`);
 
       if (!res.ok) {
         throw new Error(`Fetching movies details failed.`);
